@@ -45,27 +45,54 @@ module.exports = async (req, res) => {
       delimiters: { start: '{{', end: '}}' }
     });
     
+    // FIXED: Now includes all template placeholders correctly
     doc.render({
+      // Contact info (fixed)
       NAME: cvData.NAME || "",
       LOCATION: cvData.LOCATION || "",
       PHONE: cvData.PHONE || "",
       EMAIL: cvData.EMAIL || "",
       LINKEDIN: cvData.LINKEDIN || "",
+      
+      // Target title (from vacancy)
       TARGET_TITLE: cvData.TARGET_TITLE || "",
+      
+      // Section labels (for language switching)
       SECTION_LABELS: cvData.SECTION_LABELS || {},
-      SUMMARY: cvData.SUMMARY || "",
-      SKILLS: cvData.SKILLS || [],
-      WORK_BLOCKS: (cvData.WORK_BLOCKS || []).map(b => ({
-        BLOCK_HEADER: b.BLOCK_HEADER || "",
-        ENTRIES: (b.ENTRIES || []).map(e => ({ 
-          ENTRY_HEADER: e.ENTRY_HEADER || "", 
-          BULLETS: e.BULLETS || [] 
+      
+      // FIXED: Template uses SUMMARY_TEXT, not SUMMARY
+      SUMMARY_TEXT: cvData.SUMMARY_TEXT || "",
+      
+      // Skills array
+      SKILLS: (cvData.SKILLS || []).map(s => ({
+        CATEGORY: s.CATEGORY || "",
+        CONTENT: s.CONTENT || ""
+      })),
+      
+      // FIXED: Work blocks now include COMPANY_CONTEXT and ROLE_SCOPE
+      WORK_BLOCKS: (cvData.WORK_BLOCKS || []).map(block => ({
+        BLOCK_HEADER: block.BLOCK_HEADER || "",
+        COMPANY_CONTEXT: block.COMPANY_CONTEXT || "",  // ADDED
+        ENTRIES: (block.ENTRIES || []).map(entry => ({ 
+          ENTRY_HEADER: entry.ENTRY_HEADER || "", 
+          ROLE_SCOPE: entry.ROLE_SCOPE || "",  // ADDED
+          BULLETS: entry.BULLETS || [] 
         }))
       })),
-      EDUCATION: cvData.EDUCATION || [],
-      LEADERSHIP: (cvData.LEADERSHIP || []).map(i => ({ 
-        HEADER: i.HEADER || "", 
-        DETAIL: i.DETAIL || "" 
+      
+      // Certifications array
+      CERTIFICATIONS: cvData.CERTIFICATIONS || [],
+      
+      // Awards array
+      AWARDS: cvData.AWARDS || [],
+      
+      // Languages array
+      LANGUAGES: cvData.LANGUAGES || [],
+      
+      // Leadership array
+      LEADERSHIP: (cvData.LEADERSHIP || []).map(item => ({ 
+        HEADER: item.HEADER || "", 
+        DETAIL: item.DETAIL || "" 
       }))
     });
 
