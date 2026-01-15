@@ -76,17 +76,10 @@ module.exports = async (req, res) => {
         CONTENT: s.CONTENT || ""
       })),
       
-      // Work blocks - simplified structure
-      // ENTRY_HEADER can be empty string for single-role companies
-      // First bullet includes scope
-      WORK_BLOCKS: (cvData.WORK_BLOCKS || []).map(block => ({
-        BLOCK_HEADER: block.BLOCK_HEADER || "",
-        COMPANY_CONTEXT: block.COMPANY_CONTEXT || "",
-        ENTRIES: (block.ENTRIES || []).map(entry => ({ 
-          ENTRY_HEADER: entry.ENTRY_HEADER || "",
-          HAS_ENTRY_HEADER: !!(entry.ENTRY_HEADER && entry.ENTRY_HEADER.trim()),
-          BULLETS: entry.BULLETS || [] 
-        }))
+      // Work entries - flat structure, each role is standalone
+      WORK_ENTRIES: (cvData.WORK_ENTRIES || []).map(entry => ({
+      ROLE_LINE: entry.ROLE_LINE || "",
+      BULLETS: entry.BULLETS || []
       })),
       
       // Simple arrays
