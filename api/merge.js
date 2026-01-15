@@ -25,7 +25,6 @@ module.exports = async (req, res) => {
     });
     
     console.log('Response status:', templateResponse.status);
-    console.log('Response headers:', Object.fromEntries(templateResponse.headers.entries()));
     
     if (!templateResponse.ok) {
       const text = await templateResponse.text();
@@ -45,7 +44,9 @@ module.exports = async (req, res) => {
       delimiters: { start: '{{', end: '}}' }
     });
     
-    // FIXED: Now includes all template placeholders correctly
+    // FIXED: Flatten section labels to avoid nested object issues
+    const sectionLabels = cvData.SECTION_LABELS || {};
+    
     doc.render({
       // Contact info (fixed)
       NAME: cvData.NAME || "",
@@ -54,13 +55,19 @@ module.exports = async (req, res) => {
       EMAIL: cvData.EMAIL || "",
       LINKEDIN: cvData.LINKEDIN || "",
       
-      // Target title (from vacancy)
+      // Target title
       TARGET_TITLE: cvData.TARGET_TITLE || "",
       
-      // Section labels (for language switching)
-      SECTION_LABELS: cvData.SECTION_LABELS || {},
+      // FIXED: Flattened section labels (no more nested object)
+      LABEL_SUMMARY: sectionLabels.SUMMARY || "SUMMARY",
+      LABEL_SKILLS: sectionLabels.SKILLS || "SKILLS",
+      LABEL_WORK_EXPERIENCE: sectionLabels.WORK_EXPERIENCE || "WORK EXPERIENCE",
+      LABEL_CERTIFICATIONS: sectionLabels.CERTIFICATIONS || "CERTIFICATIONS",
+      LABEL_AWARDS: sectionLabels.AWARDS || "AWARDS",
+      LABEL_LANGUAGES: sectionLabels.LANGUAGES || "LANGUAGES",
+      LABEL_LEADERSHIP: sectionLabels.LEADERSHIP || "LEADERSHIP AND ACTIVITIES",
       
-      // FIXED: Template uses SUMMARY_TEXT, not SUMMARY
+      // Summary text
       SUMMARY_TEXT: cvData.SUMMARY_TEXT || "",
       
       // Skills array
@@ -69,24 +76,22 @@ module.exports = async (req, res) => {
         CONTENT: s.CONTENT || ""
       })),
       
-      // FIXED: Work blocks now include COMPANY_CONTEXT and ROLE_SCOPE
+      // Work blocks - simplified structure
+      // ENTRY_HEADER can be empty string for single-role companies
+      // First bullet includes scope
       WORK_BLOCKS: (cvData.WORK_BLOCKS || []).map(block => ({
         BLOCK_HEADER: block.BLOCK_HEADER || "",
-        COMPANY_CONTEXT: block.COMPANY_CONTEXT || "",  // ADDED
+        COMPANY_CONTEXT: block.COMPANY_CONTEXT || "",
         ENTRIES: (block.ENTRIES || []).map(entry => ({ 
-          ENTRY_HEADER: entry.ENTRY_HEADER || "", 
-          ROLE_SCOPE: entry.ROLE_SCOPE || "",  // ADDED
+          ENTRY_HEADER: entry.ENTRY_HEADER || "",
+          HAS_ENTRY_HEADER: !!(entry.ENTRY_HEADER && entry.ENTRY_HEADER.trim()),
           BULLETS: entry.BULLETS || [] 
         }))
       })),
       
-      // Certifications array
+      // Simple arrays
       CERTIFICATIONS: cvData.CERTIFICATIONS || [],
-      
-      // Awards array
       AWARDS: cvData.AWARDS || [],
-      
-      // Languages array
       LANGUAGES: cvData.LANGUAGES || [],
       
       // Leadership array
