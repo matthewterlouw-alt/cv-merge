@@ -17,12 +17,25 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing cvData' });
     }
 
-    const templateResponse = await fetch('https://docs.google.com/document/d/1yXWnobc7FhdvwbYupZHNjHWBqJ612vqdbEbwph_IP2Y/export?format=docx');
+    const templateUrl = 'https://docs.google.com/document/d/1yXWnobc7FhdvwbYupZHNjHWBqJ612vqdbEbwph_IP2Y/export?format=docx';
+    console.log('Fetching template from:', templateUrl);
+    
+    const templateResponse = await fetch(templateUrl, {
+      redirect: 'follow'
+    });
+    
+    console.log('Response status:', templateResponse.status);
+    console.log('Response headers:', Object.fromEntries(templateResponse.headers.entries()));
+    
     if (!templateResponse.ok) {
-      return res.status(400).json({ error: 'Failed to fetch template' });
+      const text = await templateResponse.text();
+      console.log('Error response:', text.substring(0, 500));
+      return res.status(400).json({ error: 'Failed to fetch template', status: templateResponse.status });
     }
     
     const arrayBuffer = await templateResponse.arrayBuffer();
+    console.log('ArrayBuffer size:', arrayBuffer.byteLength);
+    
     const bytes = Buffer.from(arrayBuffer);
 
     const zip = new PizZip(bytes);
