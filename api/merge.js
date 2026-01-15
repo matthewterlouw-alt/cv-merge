@@ -11,25 +11,19 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { cvData, templateBase64, filename } = req.body;
+    const { cvData, filename } = req.body;
 
-    if (!cvData || !templateBase64) {
-      return res.status(400).json({ error: 'Missing cvData or templateBase64' });
+    if (!cvData) {
+      return res.status(400).json({ error: 'Missing cvData' });
     }
 
-    // Debug: log what we received
-    console.log('templateBase64 length:', templateBase64?.length);
-    console.log('templateBase64 starts with:', templateBase64?.substring(0, 100));
-
-    // Strip data URL prefix if present
-    let base64Data = templateBase64;
-    if (base64Data.includes(',')) {
-      base64Data = base64Data.split(',')[1];
+    const templateResponse = await fetch('https://docs.google.com/document/d/1yXWnobc7FhdvwbYupZHNjHWBqJ612vqdbEbwph_IP2Y/export?format=docx');
+    if (!templateResponse.ok) {
+      return res.status(400).json({ error: 'Failed to fetch template' });
     }
-
-    const bytes = Buffer.from(base64Data, 'base64');
-    console.log('Buffer length:', bytes.length);
-    console.log('First bytes:', bytes.slice(0, 4).toString('hex'));
+    
+    const arrayBuffer = await templateResponse.arrayBuffer();
+    const bytes = Buffer.from(arrayBuffer);
 
     const zip = new PizZip(bytes);
     const doc = new Docxtemplater(zip, { 
